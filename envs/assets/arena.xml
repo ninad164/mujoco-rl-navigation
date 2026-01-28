@@ -11,10 +11,31 @@
     <geom name="wall_e" type="box" pos="5 0 0"  size="0.1 5 0.5" rgba="0.2 0.2 0.2 1"/>
     <geom name="wall_w" type="box" pos="-5 0 0" size="0.1 5 0.5" rgba="0.2 0.2 0.2 1"/>
 
-    <!-- Obstacles -->
-    <geom name="obs1" type="cylinder" pos="1.5 0.5 0"  size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
-    <geom name="obs2" type="cylinder" pos="-1.0 1.5 0" size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
-    <geom name="obs3" type="cylinder" pos="0.5 -1.5 0" size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
+    <!-- Obstacles (movable bodies so we can randomize in reset) -->
+    <body name="obs1" pos="1.5 0.5 0">
+      <geom name="obs1_geom" type="cylinder" size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
+    </body>
+
+    <body name="obs2" pos="-1.0 1.5 0">
+      <geom name="obs2_geom" type="cylinder" size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
+    </body>
+
+    <body name="obs3" pos="0.5 -1.5 0">
+      <geom name="obs3_geom" type="cylinder" size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
+    </body>
+
+    <body name="obs4" pos="-1.5 -0.5 0">
+      <geom name="obs4_geom" type="cylinder" size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
+    </body>
+
+    <body name="obs5" pos="1.2 -1.2 0">
+      <geom name="obs5_geom" type="cylinder" size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
+    </body>
+
+    <body name="obs6" pos="-0.8 1.0 0">
+      <geom name="obs6_geom" type="cylinder" size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
+    </body>
+
 
     <!-- Robot (kinematic via slide/hinge joints) -->
     <body name="robot" pos="0 0 0">
@@ -40,7 +61,7 @@
     </body>
 
     <!-- Goal marker (visual only) -->
-    <body name="goal" pos="3 3 0">
+    <body name="goal" pos="2 2 0">
       <geom name="goal_geom" type="sphere" size="0.15" rgba="0 0.8 0 1" contype="0" conaffinity="0"/>
     </body>
   </worldbody>

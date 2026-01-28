@@ -32,6 +32,16 @@ class NavEnv(gym.Env):
         self.model = mujoco.MjModel.from_xml_path("envs/assets/arena.xml")
         self.data = mujoco.MjData(self.model)
 
+        self.obs_body_ids = [
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "obs1"),
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "obs2"),
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "obs3"),
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "obs4"),
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "obs5"),
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "obs6")       
+        ]
+        self.goal_body_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "goal")
+
         # IDs for fast lookup
         self.robot_geom_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, "robot_body")
         self.robot_body_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "robot")
@@ -69,20 +79,52 @@ class NavEnv(gym.Env):
 
         mujoco.mj_resetData(self.model, self.data)
 
-        # Spawn in a central region so goal is reachable and walls are less likely
-        self.data.qpos[0:2] = np.random.uniform(-2.0, 2.0, size=2)
+        # ----- sample a random start -----
+        start = self.np_random.uniform(-2.5, 2.5, size=2)
 
-        # Face roughly toward the goal to make baseline solvable
-        x, y = float(self.data.qpos[0]), float(self.data.qpos[1])
-        theta_to_goal = np.arctan2(self.goal[1] - y, self.goal[0] - x)
-        self.data.qpos[2] = theta_to_goal + np.random.uniform(-0.5, 0.5)
+        # ----- sample a random goal far enough from start -----
+        while True:
+            goal = self.np_random.uniform(-2.5, 2.5, size=2)
+            if np.linalg.norm(goal - start) > 2.5:
+                break
+        self.goal = goal.astype(np.float64)
+
+        # print("start:", start, "goal:", self.goal)
+
+        # set robot pose (face goal)
+        self.data.qpos[0] = float(start[0])
+        self.data.qpos[1] = float(start[1])
+        theta_to_goal = np.arctan2(self.goal[1] - start[1], self.goal[0] - start[0])
+        self.data.qpos[2] = float(theta_to_goal + self.np_random.uniform(-0.7, 0.7))
+
+        # (optional) clear velocities
+        if self.data.qvel is not None:
+            self.data.qvel[:] = 0
+
+        # ----- randomize obstacles (reject if too close to start/goal) -----
+        for bid in self.obs_body_ids:
+            while True:
+                p = self.np_random.uniform(-2.0, 2.0, size=2)
+                if np.linalg.norm(p - start) < 1.0:
+                    continue
+                if np.linalg.norm(p - self.goal) < 1.0:
+                    continue
+                break
+            self.model.body_pos[bid, 0] = float(p[0])
+            self.model.body_pos[bid, 1] = float(p[1])
+
+        # Move goal marker (green dot) to the sampled goal
+        self.model.body_pos[self.goal_body_id, 0] = float(self.goal[0])
+        self.model.body_pos[self.goal_body_id, 1] = float(self.goal[1])
+
+        mujoco.mj_forward(self.model, self.data)
 
         self.step_count = 0
         self.prev_dist = self._goal_distance()
 
         obs = self._get_obs()
-        info = {}
-        return obs, info
+        return obs, {}
+
 
     def _goal_distance(self) -> float:
         pos = np.array(self.data.qpos[0:2], dtype=np.float64)

@@ -1,29 +1,25 @@
-# import time
 import numpy as np
 import pandas as pd
-import argparse
+from stable_baselines3 import PPO
 
 from envs.nav_env import NavEnv
-from controllers.baseline import BaselineController
 
 
-def run_eval(n_episodes=100, seed=1):
+def run_eval(model_path="ppo_nav_rand6.zip", n_episodes=100, seed=0):
     # np.random.seed(seed)
 
     env = NavEnv()
-    ctrl = BaselineController(n_rays=env.n_rays)
+    model = PPO.load(model_path, device="cpu")
 
     rows = []
     for ep in range(n_episodes):
         obs, _ = env.reset(seed=seed + ep)
-        # t0 = time.time()
-
         collided = False
         reached = False
         steps = 0
 
         while True:
-            action = ctrl.act(obs)
+            action, _ = model.predict(obs, deterministic=True)
             obs, reward, terminated, truncated, info = env.step(action)
             steps += 1
 
@@ -35,7 +31,6 @@ def run_eval(n_episodes=100, seed=1):
             if terminated or truncated:
                 break
 
-        # dt = time.time() - t0
         sim_time = steps * float(env.model.opt.timestep)
 
         rows.append({
@@ -46,8 +41,7 @@ def run_eval(n_episodes=100, seed=1):
             "success": int(reached),
         })
 
-    df = pd.DataFrame(rows)
-    return df
+    return pd.DataFrame(rows)
 
 
 def summarize(df: pd.DataFrame):
@@ -55,7 +49,6 @@ def summarize(df: pd.DataFrame):
     collision_rate = df["collision"].mean()
     success_rate = df["success"].mean()
 
-    # time-to-goal only for successful episodes
     success_df = df[df["success"] == 1]
     if len(success_df) > 0:
         median_time = float(success_df["time_sec"].median())
@@ -64,7 +57,7 @@ def summarize(df: pd.DataFrame):
         median_time = None
         median_steps = None
 
-    print("\n=== BASELINE RESULTS ===")
+    print("\n=== PPO RESULTS ===")
     print(f"Episodes: {n}")
     print(f"Collision rate: {collision_rate:.3f}")
     print(f"Success rate:   {success_rate:.3f}")
@@ -74,23 +67,9 @@ def summarize(df: pd.DataFrame):
     else:
         print("No successful episodes; cannot compute time-to-goal.")
 
-    return {
-        "episodes": n,
-        "collision_rate": collision_rate,
-        "success_rate": success_rate,
-        "median_time_sec_success": median_time,
-        "median_steps_success": median_steps
-    }
-
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--episodes", type=int, default=100)
-    args = parser.parse_args()
-
-    df = run_eval(n_episodes=args.episodes, seed=args.seed)
+    df = run_eval(model_path="ppo_nav.zip", n_episodes=100, seed=0)
     summarize(df)
-    df.to_csv("baseline_metrics.csv", index=False)
-    print("\nSaved baseline_metrics.csv")
-
+    df.to_csv("ppo_metrics.csv", index=False)
+    print("\nSaved ppo_metrics.csv")
