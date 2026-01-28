@@ -1,0 +1,26 @@
+<mujoco model="nav_arena">
+  <option timestep="0.02" gravity="0 0 0"/>
+  <worldbody>
+    <!-- Floor -->
+    <geom name="floor" type="plane" size="10 10 0.1" rgba="0.9 0.9 0.9 1"/>
+
+    <!-- Walls -->
+    <geom type="box" pos="0 5 0" size="5 0.1 0.5"/>
+    <geom type="box" pos="0 -5 0" size="5 0.1 0.5"/>
+    <geom type="box" pos="5 0 0" size="0.1 5 0.5"/>
+    <geom type="box" pos="-5 0 0" size="0.1 5 0.5"/>
+
+    <!-- Robot -->
+    <body name="robot" pos="0 0 0">
+      <joint name="x" type="slide" axis="1 0 0"/>
+      <joint name="y" type="slide" axis="0 1 0"/>
+      <joint name="theta" type="hinge" axis="0 0 1"/>
+      <geom type="cylinder" size="0.2 0.05" rgba="0.2 0.2 1 1"/>
+    </body>
+
+    <!-- Goal marker -->
+    <body name="goal" pos="3 3 0">
+      <geom type="sphere" size="0.2" rgba="0 1 0 1" contype="0" conaffinity="0"/>
+    </body>
+  </worldbody>
+</mujoco>

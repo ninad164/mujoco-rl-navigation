@@ -1,0 +1,19 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environments
+mujoco_rl/
+venv/
+
+# Trained models
+*.zip
+
+# Logs / results
+results/
+*.mp4
+*.png
+
+# System files
+.DS_Store
+Thumbs.db
