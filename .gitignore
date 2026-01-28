@@ -13,6 +13,8 @@ venv/
 results/
 *.mp4
 *.png
+*.csv
+ppo_nav_tensorboard/
 
 # System files
 .DS_Store

@@ -1,26 +1,63 @@
 <mujoco model="nav_arena">
-  <option timestep="0.02" gravity="0 0 0"/>
+  <option timestep="0.02" gravity="0 0 0" />
+
   <worldbody>
     <!-- Floor -->
-    <geom name="floor" type="plane" size="10 10 0.1" rgba="0.9 0.9 0.9 1"/>
+    <geom name="floor" type="plane" size="10 10 0.1" rgba="0.95 0.95 0.95 1"/>
 
     <!-- Walls -->
-    <geom type="box" pos="0 5 0" size="5 0.1 0.5"/>
-    <geom type="box" pos="0 -5 0" size="5 0.1 0.5"/>
-    <geom type="box" pos="5 0 0" size="0.1 5 0.5"/>
-    <geom type="box" pos="-5 0 0" size="0.1 5 0.5"/>
+    <geom name="wall_n" type="box" pos="0 5 0"  size="5 0.1 0.5" rgba="0.2 0.2 0.2 1"/>
+    <geom name="wall_s" type="box" pos="0 -5 0" size="5 0.1 0.5" rgba="0.2 0.2 0.2 1"/>
+    <geom name="wall_e" type="box" pos="5 0 0"  size="0.1 5 0.5" rgba="0.2 0.2 0.2 1"/>
+    <geom name="wall_w" type="box" pos="-5 0 0" size="0.1 5 0.5" rgba="0.2 0.2 0.2 1"/>
 
-    <!-- Robot -->
+    <!-- Obstacles -->
+    <geom name="obs1" type="cylinder" pos="1.5 0.5 0"  size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
+    <geom name="obs2" type="cylinder" pos="-1.0 1.5 0" size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
+    <geom name="obs3" type="cylinder" pos="0.5 -1.5 0" size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
+
+    <!-- Robot (kinematic via slide/hinge joints) -->
     <body name="robot" pos="0 0 0">
       <joint name="x" type="slide" axis="1 0 0"/>
       <joint name="y" type="slide" axis="0 1 0"/>
       <joint name="theta" type="hinge" axis="0 0 1"/>
-      <geom type="cylinder" size="0.2 0.05" rgba="0.2 0.2 1 1"/>
+
+      <geom name="robot_body" type="cylinder" size="0.2 0.05" rgba="0.2 0.2 1 1"/>
+
+      <!-- 12 ray sites around robot; each site local +X points in the ray direction -->
+      <site name="ray_0"  pos="0 0 0.05" size="0.005" rgba="0 0 0 0"/>
+      <site name="ray_1"  pos="0 0 0.05" size="0.005" rgba="0 0 0 0" euler="0 0 0.523599"/>
+      <site name="ray_2"  pos="0 0 0.05" size="0.005" rgba="0 0 0 0" euler="0 0 1.047198"/>
+      <site name="ray_3"  pos="0 0 0.05" size="0.005" rgba="0 0 0 0" euler="0 0 1.570796"/>
+      <site name="ray_4"  pos="0 0 0.05" size="0.005" rgba="0 0 0 0" euler="0 0 2.094395"/>
+      <site name="ray_5"  pos="0 0 0.05" size="0.005" rgba="0 0 0 0" euler="0 0 2.617994"/>
+      <site name="ray_6"  pos="0 0 0.05" size="0.005" rgba="0 0 0 0" euler="0 0 3.141593"/>
+      <site name="ray_7"  pos="0 0 0.05" size="0.005" rgba="0 0 0 0" euler="0 0 -2.617994"/>
+      <site name="ray_8"  pos="0 0 0.05" size="0.005" rgba="0 0 0 0" euler="0 0 -2.094395"/>
+      <site name="ray_9"  pos="0 0 0.05" size="0.005" rgba="0 0 0 0" euler="0 0 -1.570796"/>
+      <site name="ray_10" pos="0 0 0.05" size="0.005" rgba="0 0 0 0" euler="0 0 -1.047198"/>
+      <site name="ray_11" pos="0 0 0.05" size="0.005" rgba="0 0 0 0" euler="0 0 -0.523599"/>
     </body>
 
-    <!-- Goal marker -->
+    <!-- Goal marker (visual only) -->
     <body name="goal" pos="3 3 0">
-      <geom type="sphere" size="0.2" rgba="0 1 0 1" contype="0" conaffinity="0"/>
+      <geom name="goal_geom" type="sphere" size="0.15" rgba="0 0.8 0 1" contype="0" conaffinity="0"/>
     </body>
   </worldbody>
+
+  <!-- Rangefinder sensors (must be top-level under <mujoco>) -->
+  <!--<sensor>
+    <rangefinder name="rf_0"  site="ray_0"/>
+    <rangefinder name="rf_1"  site="ray_1"/>
+    <rangefinder name="rf_2"  site="ray_2"/>
+    <rangefinder name="rf_3"  site="ray_3"/>
+    <rangefinder name="rf_4"  site="ray_4"/>
+    <rangefinder name="rf_5"  site="ray_5"/>
+    <rangefinder name="rf_6"  site="ray_6"/>
+    <rangefinder name="rf_7"  site="ray_7"/>
+    <rangefinder name="rf_8"  site="ray_8"/>
+    <rangefinder name="rf_9"  site="ray_9"/>
+    <rangefinder name="rf_10" site="ray_10"/>
+    <rangefinder name="rf_11" site="ray_11"/>
+  </sensor>-->
 </mujoco>
