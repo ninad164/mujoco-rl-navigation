@@ -1,41 +1,47 @@
 <mujoco model="nav_arena">
+    <visual>
+    <global offwidth="1280" offheight="720"/>
+  </visual>
+
   <option timestep="0.02" gravity="0 0 0" />
 
   <worldbody>
     <!-- Floor -->
     <geom name="floor" type="plane" size="10 10 0.1" rgba="0.95 0.95 0.95 1"/>
-
+    
+    <!--Camera-->
+    <camera name="topdown" pos="0 0 8" xyaxes="1 0 0 0 1 0"/>
+    
     <!-- Walls -->
     <geom name="wall_n" type="box" pos="0 5 0"  size="5 0.1 0.5" rgba="0.2 0.2 0.2 1"/>
     <geom name="wall_s" type="box" pos="0 -5 0" size="5 0.1 0.5" rgba="0.2 0.2 0.2 1"/>
     <geom name="wall_e" type="box" pos="5 0 0"  size="0.1 5 0.5" rgba="0.2 0.2 0.2 1"/>
     <geom name="wall_w" type="box" pos="-5 0 0" size="0.1 5 0.5" rgba="0.2 0.2 0.2 1"/>
 
-    <!-- Obstacles (movable bodies so we can randomize in reset) -->
-    <body name="obs1" pos="1.5 0.5 0">
+    <!-- Spread out obstacle course -->
+    <body name="obs1" pos="-1.2 -1.0 0">
       <geom name="obs1_geom" type="cylinder" size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
     </body>
 
-    <body name="obs2" pos="-1.0 1.5 0">
+    <body name="obs2" pos="-1.2  1.0 0">
       <geom name="obs2_geom" type="cylinder" size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
     </body>
 
-    <body name="obs3" pos="0.5 -1.5 0">
+    <body name="obs3" pos="0.0 -0.6 0">
       <geom name="obs3_geom" type="cylinder" size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
     </body>
 
-    <body name="obs4" pos="-1.5 -0.5 0">
+    <body name="obs4" pos="0.0  0.6 0">
       <geom name="obs4_geom" type="cylinder" size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
     </body>
 
-    <body name="obs5" pos="1.2 -1.2 0">
+    <body name="obs5" pos="1.2 -1.0 0">
       <geom name="obs5_geom" type="cylinder" size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
     </body>
 
-    <body name="obs6" pos="-0.8 1.0 0">
+    <body name="obs6" pos="1.2  1.0 0">
       <geom name="obs6_geom" type="cylinder" size="0.25 0.2" rgba="0.8 0.2 0.2 1"/>
     </body>
-
 
     <!-- Robot (kinematic via slide/hinge joints) -->
     <body name="robot" pos="0 0 0">

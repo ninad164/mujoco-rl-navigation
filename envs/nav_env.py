@@ -79,15 +79,15 @@ class NavEnv(gym.Env):
 
         mujoco.mj_resetData(self.model, self.data)
 
-        # ----- sample a random start -----
-        start = self.np_random.uniform(-2.5, 2.5, size=2)
+        # ----- sample a start -----
+        start = np.array([-2.2, -2.2], dtype=np.float64)
 
-        # ----- sample a random goal far enough from start -----
+        # ----- sample a goal far enough from start -----
         while True:
-            goal = self.np_random.uniform(-2.5, 2.5, size=2)
+            goal = np.array([2.2, 2.2], dtype=np.float64)
             if np.linalg.norm(goal - start) > 2.5:
                 break
-        self.goal = goal.astype(np.float64)
+        self.goal = goal
 
         # print("start:", start, "goal:", self.goal)
 
@@ -95,23 +95,23 @@ class NavEnv(gym.Env):
         self.data.qpos[0] = float(start[0])
         self.data.qpos[1] = float(start[1])
         theta_to_goal = np.arctan2(self.goal[1] - start[1], self.goal[0] - start[0])
-        self.data.qpos[2] = float(theta_to_goal + self.np_random.uniform(-0.7, 0.7))
+        self.data.qpos[2] = float(theta_to_goal)
 
         # (optional) clear velocities
         if self.data.qvel is not None:
             self.data.qvel[:] = 0
 
         # ----- randomize obstacles (reject if too close to start/goal) -----
-        for bid in self.obs_body_ids:
-            while True:
-                p = self.np_random.uniform(-2.0, 2.0, size=2)
-                if np.linalg.norm(p - start) < 1.0:
-                    continue
-                if np.linalg.norm(p - self.goal) < 1.0:
-                    continue
-                break
-            self.model.body_pos[bid, 0] = float(p[0])
-            self.model.body_pos[bid, 1] = float(p[1])
+        # for bid in self.obs_body_ids:
+        #     while True:
+        #         p = self.np_random.uniform(-2.0, 2.0, size=2)
+        #         if np.linalg.norm(p - start) < 1.0:
+        #             continue
+        #         if np.linalg.norm(p - self.goal) < 1.0:
+        #             continue
+        #         break
+        #     self.model.body_pos[bid, 0] = float(p[0])
+        #     self.model.body_pos[bid, 1] = float(p[1])
 
         # Move goal marker (green dot) to the sampled goal
         self.model.body_pos[self.goal_body_id, 0] = float(self.goal[0])

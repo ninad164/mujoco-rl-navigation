@@ -11,7 +11,6 @@ venv/
 
 # Logs / results
 results/
-*.mp4
 *.png
 *.csv
 ppo_nav_tensorboard/

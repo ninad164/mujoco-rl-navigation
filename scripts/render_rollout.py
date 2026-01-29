@@ -1,4 +1,5 @@
 import os
+from matplotlib.pyplot import step
 import numpy as np
 import imageio.v2 as imageio
 
@@ -9,80 +10,83 @@ from envs.nav_env import NavEnv
 from controllers.baseline import BaselineController
 
 
-def rollout_frames(env: NavEnv, policy="baseline", max_steps=500, width=640, height=480,
-                   force_start=True, require_success=False, max_tries=50):
-    """
-    policy: "baseline" or path to PPO zip (e.g. "ppo_nav.zip")
-    force_start: if True, start from a fixed pose far from the goal
-    require_success: if True, keep sampling episodes until goal_reached
-    """
-    # Prepare controller / model
+def rollout_frames(env, policy="baseline", max_steps=1500, width=640, height=640):
+    frames = []
+
     if policy == "baseline":
         ctrl = BaselineController(n_rays=env.n_rays)
-        def act(o):
-            return ctrl.act(o)
+        model = None
     else:
-        model = PPO.load(policy, device="cpu")
-        def act(o):
-            a, _ = model.predict(o, deterministic=True)
-            return a
+        ctrl = None
+        model = PPO.load("ppo_nav_rand6.zip", device="cpu")
 
-    renderer = mujoco.Renderer(env.model, height=height, width=width)
+    renderer = mujoco.Renderer(env.model, width=width, height=height)
 
-    for attempt in range(max_tries):
-        obs, _ = env.reset()
+    obs, _ = env.reset(seed=0)
 
-        # Force a consistent, far start so videos are meaningful
-        if force_start:
-            x0, y0 = -1.8, -1.8
-            theta0 = np.arctan2(env.goal[1] - y0, env.goal[0] - x0)
-            env.data.qpos[0] = x0
-            env.data.qpos[1] = y0
-            env.data.qpos[2] = theta0
-            mujoco.mj_forward(env.model, env.data)
-            env.prev_dist = env._goal_distance()
-            obs = env._get_obs()
+    reached = False
+    collided = False
+    steps = 0
 
-        frames = []
-        reached = False
+    for _ in range(max_steps):
+        # Choose action
+        if ctrl is not None:
+            action = ctrl.act(obs)
+        else:
+            action, _ = model.predict(obs, deterministic=True)
 
-        for _ in range(max_steps):
-            action = act(obs)
-            obs, r, terminated, truncated, info = env.step(action)
+        # Step env
+        obs, reward, terminated, truncated, info = env.step(action)
+        steps += 1
 
-            renderer.update_scene(env.data, camera=-1)  # <-- important
-            frames.append(renderer.render())
+        # Render frame
+        renderer.update_scene(env.data, camera="topdown")
+        frame = renderer.render()
+        frames.append(frame)
 
-            if info.get("goal_reached", False):
-                reached = True
+        # Stop conditions for video
+        if info.get("goal_reached", False):
+            reached = True
+            break
 
-            if terminated or truncated:
-                break
+        if info.get("collision", False):
+            collided = True
+            break
 
-        # If we require success (baseline), retry until we get a successful episode
-        if not require_success or reached:
-            return frames
+        # Important: ignore truncated (timeout) so baseline can keep trying.
+        # We do NOT break on (terminated or truncated) anymore.
 
-    # If we couldn't find a success episode, return the last attempt
+    print(f"[{policy.upper()}] Rollout ended: steps={steps}, reached={reached}, collided={collided}")
+
+    renderer.close()
     return frames
-
-
 
 def save_mp4(frames, out_path, fps=30):
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     imageio.mimsave(out_path, frames, fps=fps)
     print(f"Saved: {out_path}  ({len(frames)} frames)")
 
+def side_by_side(frames_left, frames_right):
+    n = min(len(frames_left), len(frames_right))
+    combo = []
+    for i in range(n):
+        combo.append(np.concatenate([frames_left[i], frames_right[i]], axis=1))
+    return combo
 
 if __name__ == "__main__":
     env = NavEnv()
 
-    # Baseline: require a successful episode so it actually reaches the goal
-    frames_b = rollout_frames(env, policy="baseline", max_steps=600,
-                              force_start=True, require_success=True)
-    save_mp4(frames_b, "results/baseline.mp4", fps=30)
+    print("Rendering baseline episode...")
+    frames_b = rollout_frames(env, policy="baseline")
+    imageio.mimsave("baseline.mp4", frames_b, fps=30)
 
-    # PPO: fixed far start so it doesn't end instantly
-    frames_p = rollout_frames(env, policy="ppo_nav.zip", max_steps=600,
-                              force_start=True, require_success=False)
-    save_mp4(frames_p, "results/ppo.mp4", fps=30)
+    print("Rendering PPO episode...")
+    frames_p = rollout_frames(env, policy="ppo")
+    imageio.mimsave("ppo.mp4", frames_p, fps=30)
+    
+    combo = side_by_side(frames_b, frames_p)
+    imageio.mimsave("baseline_vs_ppo.mp4", combo, fps=20)
+    print("Saved baseline_vs_ppo.mp4")
+
+    #print("Saved baseline.mp4 and ppo.mp4")
+
