@@ -6,6 +6,21 @@ This project demonstrates end-to-end autonomous navigation using Reinforcement L
 A mobile robot must navigate to a goal position while avoiding randomized obstacles, using only LiDAR style ray sensor inputs. Performance is compared against a hand-crafted reactive baseline controller.
 
 ---
+## Navigation Policy Comparison
+
+The video below shows a side by side comparison between the hand coded baseline controller and the learned PPO policy navigating the same obstacle environment.
+
+Left: Baseline controller  
+Right: PPO learned policy
+
+<video src="baseline_vs_ppo.mp4" width="800" controls></video>
+
+**Key Results**
+
+- Success rate improved from 28% to 71% (153% relative improvement)  
+- Median time to goal reduced from 8.74 s to 3.30 s (62% faster)  
+- PPO learns smoother obstacle avoidance and more direct goal seeking behavior
+---
 
 ## Problem Setup
 
