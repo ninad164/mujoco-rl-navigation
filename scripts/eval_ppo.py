@@ -4,7 +4,6 @@ from stable_baselines3 import PPO
 
 from envs.nav_env import NavEnv
 
-
 def run_eval(model_path="ppo_nav_rand6.zip", n_episodes=100, seed=0):
     # np.random.seed(seed)
 
@@ -43,7 +42,6 @@ def run_eval(model_path="ppo_nav_rand6.zip", n_episodes=100, seed=0):
 
     return pd.DataFrame(rows)
 
-
 def summarize(df: pd.DataFrame):
     n = len(df)
     collision_rate = df["collision"].mean()
@@ -66,7 +64,6 @@ def summarize(df: pd.DataFrame):
         print(f"Median steps-to-goal (success only): {median_steps:.1f}")
     else:
         print("No successful episodes; cannot compute time-to-goal.")
-
 
 if __name__ == "__main__":
     df = run_eval(model_path="ppo_nav.zip", n_episodes=100, seed=0)

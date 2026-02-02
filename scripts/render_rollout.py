@@ -9,7 +9,6 @@ from stable_baselines3 import PPO
 from envs.nav_env import NavEnv
 from controllers.baseline import BaselineController
 
-
 def rollout_frames(env, policy="baseline", max_steps=1500, width=640, height=640):
     frames = []
 

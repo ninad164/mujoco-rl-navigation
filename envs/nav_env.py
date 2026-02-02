@@ -50,18 +50,18 @@ class NavEnv(gym.Env):
         self.max_steps = 500
         self.step_count = 0
 
-        # Goal (kept constant for now; later we can randomize)
+        # Goal
         self.goal = np.array([2.0, 2.0], dtype=np.float64)
 
         # For progress reward
         self.prev_dist = None
 
         # Lidar config
-        self.n_rays = 36
+        self.n_rays = 36            # num of rays
         self.max_range = 6.0
 
         # Spaces
-        obs_dim = self.n_rays + 2  # rays + (goal_dist, goal_angle)
+        obs_dim = self.n_rays + 2
         self.observation_space = spaces.Box(
             low=np.zeros(obs_dim, dtype=np.float32),
             high=np.ones(obs_dim, dtype=np.float32),
@@ -79,13 +79,13 @@ class NavEnv(gym.Env):
 
         mujoco.mj_resetData(self.model, self.data)
 
-        # ----- sample a start -----
+        # Sample a start
         start = np.array([-2.2, -2.2], dtype=np.float64)
 
-        # ----- sample a goal far enough from start -----
+        # Sample a goal
         while True:
             goal = np.array([2.2, 2.2], dtype=np.float64)
-            if np.linalg.norm(goal - start) > 2.5:
+            if np.linalg.norm(goal - start) > 2.5:                         # ensures distance
                 break
         self.goal = goal
 
@@ -97,21 +97,9 @@ class NavEnv(gym.Env):
         theta_to_goal = np.arctan2(self.goal[1] - start[1], self.goal[0] - start[0])
         self.data.qpos[2] = float(theta_to_goal)
 
-        # (optional) clear velocities
+        # clear velocities
         if self.data.qvel is not None:
             self.data.qvel[:] = 0
-
-        # ----- randomize obstacles (reject if too close to start/goal) -----
-        # for bid in self.obs_body_ids:
-        #     while True:
-        #         p = self.np_random.uniform(-2.0, 2.0, size=2)
-        #         if np.linalg.norm(p - start) < 1.0:
-        #             continue
-        #         if np.linalg.norm(p - self.goal) < 1.0:
-        #             continue
-        #         break
-        #     self.model.body_pos[bid, 0] = float(p[0])
-        #     self.model.body_pos[bid, 1] = float(p[1])
 
         # Move goal marker (green dot) to the sampled goal
         self.model.body_pos[self.goal_body_id, 0] = float(self.goal[0])
@@ -124,7 +112,6 @@ class NavEnv(gym.Env):
 
         obs = self._get_obs()
         return obs, {}
-
 
     def _goal_distance(self) -> float:
         pos = np.array(self.data.qpos[0:2], dtype=np.float64)
@@ -176,10 +163,9 @@ class NavEnv(gym.Env):
                 dist = self.max_range
 
             dist = min(dist, self.max_range)
-            rays[i] = dist / self.max_range
+            rays[i] = dist / self.max_range         # scale distance to [0,1]
 
         return rays
-
 
     def _check_collision(self) -> bool:
         """True only if robot_body touches something other than the floor."""
@@ -192,7 +178,6 @@ class NavEnv(gym.Env):
                 if other != floor_geom_id:
                     return True
         return False
-
 
     def _get_obs(self) -> np.ndarray:
         rays = self._lidar()
@@ -219,6 +204,7 @@ class NavEnv(gym.Env):
         x, y = float(self.data.qpos[0]), float(self.data.qpos[1])
         theta = float(self.data.qpos[2])
 
+        # differential model
         x += v * np.cos(theta) * dt
         y += v * np.sin(theta) * dt
         theta += w * dt
@@ -241,8 +227,8 @@ class NavEnv(gym.Env):
 
         # Termination checks
         collision = self._check_collision()
-        reached_goal = dist < 0.5
-        timeout = self.step_count >= self.max_steps
+        reached_goal = dist < 0.5                   # robot doesn't actually reach the goal body
+        timeout = self.step_count >= self.max_steps # happens in baseline case
 
         terminated = False
         info = {}

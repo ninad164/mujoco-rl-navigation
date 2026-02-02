@@ -49,7 +49,6 @@ def run_eval(n_episodes=100, seed=1):
     df = pd.DataFrame(rows)
     return df
 
-
 def summarize(df: pd.DataFrame):
     n = len(df)
     collision_rate = df["collision"].mean()
@@ -82,7 +81,6 @@ def summarize(df: pd.DataFrame):
         "median_steps_success": median_steps
     }
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=0)
@@ -93,4 +91,3 @@ if __name__ == "__main__":
     summarize(df)
     df.to_csv("baseline_metrics.csv", index=False)
     print("\nSaved baseline_metrics.csv")
-
